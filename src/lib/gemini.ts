@@ -26,16 +26,30 @@ export async function getPrediction(fixture: Fixture, homeStats: TeamStats, away
     else if (maxPct === awayWinPct) outcome = "Away Win";
 
     const confidence = clamp(maxPct, 52, 85);
-    const homeGoals = Math.round(homeStats.goalsScored / (homeStats.wins + homeStats.draws + homeStats.losses || 1));
-    const awayGoals = Math.round(awayStats.goalsScored / (awayStats.wins + awayStats.draws + awayStats.losses || 1));
-    const scoreline = `${homeGoals}-${awayGoals}`;
+    let homeGoals = Math.round(homeStats.goalsScored / (homeStats.wins + homeStats.draws + homeStats.losses || 1));
+    let awayGoals = Math.round(awayStats.goalsScored / (awayStats.wins + awayStats.draws + awayStats.losses || 1));
     
-    const totalAvg = homeGoals + awayGoals;
+    // Force scoreline to match the predicted outcome
+    if (outcome === "Home Win") {
+      if (homeGoals <= awayGoals) homeGoals = awayGoals + 1;
+    } else if (outcome === "Away Win") {
+      if (awayGoals <= homeGoals) awayGoals = homeGoals + 1;
+    } else { // Draw
+      const avg = Math.round((homeGoals + awayGoals) / 2);
+      homeGoals = avg;
+      awayGoals = avg;
+    }
+
+    const scoreline = `${homeGoals}-${awayGoals}`;
+    const totalGoals = homeGoals + awayGoals;
+    
+    // Ensure bettingTip is perfectly logically consistent with the scoreline
     let bettingTip = "Both Teams to Score";
-    if (totalAvg > 3) bettingTip = "Over 2.5 Goals";
-    else if (totalAvg < 2) bettingTip = "Under 2.5 Goals";
-    else if (homeStats.goalsConceded <= 20) bettingTip = "Clean Sheet Home";
-    else if (homeWinPct > 45 && drawPct < 30) bettingTip = "Draw No Bet";
+    if (awayGoals === 0 && homeGoals > 0) bettingTip = "Clean Sheet Home";
+    else if (homeGoals === 0 && awayGoals > 0) bettingTip = "Clean Sheet Away";
+    else if (totalGoals > 2) bettingTip = "Over 2.5 Goals";
+    else if (totalGoals < 3) bettingTip = "Under 2.5 Goals";
+    else if (outcome === "Home Win" || outcome === "Away Win") bettingTip = "Draw No Bet";
     
     return {
       fixtureId: fixture.id,
@@ -54,10 +68,10 @@ export async function getPrediction(fixture: Fixture, homeStats: TeamStats, away
         { tip: "Double Chance: 1X (Home or Draw)", probability: clamp(homeWinPct + drawPct, 10, 95) },
         { tip: "Double Chance: X2 (Away or Draw)", probability: clamp(awayWinPct + drawPct, 10, 95) },
         { tip: "Double Chance: 12 (Home or Away)", probability: clamp(homeWinPct + awayWinPct, 10, 95) },
-        { tip: "Over 2.5 Goals", probability: clamp(30 + (totalAvg - 2.5) * 20, 10, 90) },
-        { tip: "Under 2.5 Goals", probability: clamp(70 - (totalAvg - 2.5) * 20, 10, 90) },
-        { tip: "BTTS: Yes", probability: clamp(40 + (totalAvg - 2.0) * 15, 10, 90) },
-        { tip: "BTTS: No", probability: clamp(60 - (totalAvg - 2.0) * 15, 10, 90) },
+        { tip: "Over 2.5 Goals", probability: clamp(30 + (totalGoals - 2.5) * 20, 10, 90) },
+        { tip: "Under 2.5 Goals", probability: clamp(70 - (totalGoals - 2.5) * 20, 10, 90) },
+        { tip: "BTTS: Yes", probability: clamp(40 + (totalGoals - 2.0) * 15, 10, 90) },
+        { tip: "BTTS: No", probability: clamp(60 - (totalGoals - 2.0) * 15, 10, 90) },
         { tip: "Handicap: Home +1.5", probability: clamp(homeWinPct + drawPct + 15, 20, 95) },
         { tip: "Handicap: Away +1.5", probability: clamp(awayWinPct + drawPct + 15, 20, 95) }
       ]
@@ -112,6 +126,7 @@ Return this exact JSON structure with no other text:
 }
 CRITICAL INSTRUCTIONS:
 - Ensure homeWinPct + drawPct + awayWinPct = exactly 100.
+- CRITICAL: The 'outcome', 'scoreline', and 'bettingTip' MUST be perfectly logically consistent. If outcome is 'Home Win', the home team MUST score more goals in the scoreline. If tip is 'Clean Sheet Home', the away team MUST have 0 goals in the scoreline.
 - Analyze defensive and offensive records carefully. If defenses are strong or scoring is low, choose "Under 2.5 Goals", "Clean Sheet Home", or "Clean Sheet Away". Do NOT default to "Over 2.5 Goals" unless both teams score heavily.
 - For additionalBets, calculate realistic probabilities based on your analysis for EXACTLY the 9 bet types listed above. Do not add, remove, or change the names of the tips.`;
 
