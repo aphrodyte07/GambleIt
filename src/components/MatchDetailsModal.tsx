@@ -80,12 +80,9 @@ export default function MatchDetailsModal({ match, onClose }: MatchDetailsModalP
                   <div key={idx} className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-white font-medium">{bet.tip}</span>
-                      <div className="flex items-center gap-3">
-                        {bet.odds && <span className="text-slate-400 text-sm font-mono tracking-tight">@ {bet.odds}</span>}
-                        <span className={`font-bold ${getProbabilityTextColor(bet.probability)}`}>
-                          {bet.probability}%
-                        </span>
-                      </div>
+                      <span className={`font-bold ${getProbabilityTextColor(bet.probability)}`}>
+                        {bet.probability}%
+                      </span>
                     </div>
                     <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden">
                       <div 

@@ -32,7 +32,6 @@ export interface TeamStats {
 export interface AdditionalBet {
   tip: string;
   probability: number;
-  odds: string;
 }
 
 export interface Prediction {
@@ -51,22 +50,31 @@ export interface Prediction {
   additionalBets: AdditionalBet[];
 }
 
-export interface ParlayLeg {
-  fixtureId: number;
-  match: string;
-  tip: string;
-  probability: number;
-  odds: string;
-}
-
-export interface Parlay {
-  type: string; // e.g. "3-Leg Safe Parlay"
-  legs: ParlayLeg[];
-  totalOdds: string;
-  totalPayout: string; // e.g. "3.2x"
-}
-
 export interface MatchData {
   fixture: Fixture;
   prediction: Prediction;
+}
+
+export interface ParlayLeg {
+  fixtureId: number;
+  homeTeam: string;
+  awayTeam: string;
+  bet: string;
+  probability: number;
+  decimalOdds: number;
+}
+
+export interface ParlaySlip {
+  legs: number;
+  label: string;
+  targetPayoutRange: string;
+  totalOdds: number;
+  impliedProbability: number;
+  picks: ParlayLeg[];
+  aiReasoning: string;
+}
+
+export interface ParlayRecommendation {
+  slips: ParlaySlip[];
+  generatedAt: string;
 }

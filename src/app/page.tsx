@@ -2,21 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { Sparkles, AlertCircle } from "lucide-react";
-import { MatchData, Parlay } from "../types";
+import { MatchData, ParlayRecommendation } from "../types";
 import Navbar from "../components/Navbar";
 import LoadingSpinner from "../components/LoadingSpinner";
 import LeagueFilter from "../components/LeagueFilter";
 import MatchCard from "../components/MatchCard";
 import MatchDetailsModal from "../components/MatchDetailsModal";
-import RecommendedParlays from "../components/RecommendedParlays";
+import ParlayPanel from "../components/ParlayPanel";
 
 export default function Home() {
   const [predictions, setPredictions] = useState<MatchData[]>([]);
-  const [parlays, setParlays] = useState<Parlay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedLeague, setSelectedLeague] = useState("All Leagues");
   const [selectedMatch, setSelectedMatch] = useState<MatchData | null>(null);
+  const [parlay, setParlay] = useState<ParlayRecommendation | null>(null);
 
   useEffect(() => {
     const fetchPredictions = async () => {
@@ -27,7 +27,6 @@ export default function Home() {
         }
         const data = await res.json();
         setPredictions(data.predictions || []);
-        setParlays(data.parlays || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred");
       } finally {
@@ -36,6 +35,12 @@ export default function Home() {
     };
 
     fetchPredictions();
+
+    // Fetch parlay recommendations independently
+    fetch("/api/parlay")
+      .then((r) => r.json())
+      .then((data) => setParlay(data))
+      .catch(() => {/* parlay section simply won't render */});
   }, []);
 
   const leagues = Array.from(new Set(predictions.map((p) => p.fixture.league.name)));
@@ -84,9 +89,8 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {selectedLeague === "All Leagues" && (
-              <RecommendedParlays parlays={parlays} />
-            )}
+            
+            {parlay && <ParlayPanel parlay={parlay} />}
 
             <LeagueFilter 
               leagues={leagues} 
