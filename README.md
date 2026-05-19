@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GambleIt — AI Football Predictions
 
-## Getting Started
+AI-powered football predictions using Google Gemini and football-data.org.
 
-First, run the development server:
+## Get Your Free API Keys
 
-```bash
+**Gemini API (required for AI predictions):**
+1. Go to https://aistudio.google.com
+2. Click "Get API Key"
+3. Copy the key into .env.local as GEMINI_API_KEY
+
+**Football Data API (optional — mock data used if absent):**
+1. Go to https://www.football-data.org/client/register
+2. Register for free
+3. Copy the token into .env.local as FOOTBALL_API_KEY
+4. Free tier covers PL, La Liga, Bundesliga, Serie A, Ligue 1
+
+## Run Locally
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Open http://localhost:3000
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploy to Vercel
+1. Push this folder to a GitHub repo
+2. Go to https://vercel.com and import the repo
+3. In Vercel project settings > Environment Variables, add:
+   - GEMINI_API_KEY
+   - FOOTBALL_API_KEY
+4. Click Deploy
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app works without FOOTBALL_API_KEY using built-in mock fixtures.
+The app works without GEMINI_API_KEY using algorithmic predictions.
