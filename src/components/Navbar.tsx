@@ -9,8 +9,8 @@ export default function Navbar() {
             <Trophy className="w-[18px] h-[18px] text-white" />
           </div>
           <div className="flex items-center">
-            <span className="text-white font-bold text-xl">Predi</span>
-            <span className="text-emerald-400 font-bold text-xl">goal</span>
+            <span className="text-white font-bold text-xl">Gamble</span>
+            <span className="text-emerald-400 font-bold text-xl">It</span>
           </div>
         </div>
         
