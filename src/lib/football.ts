@@ -71,12 +71,24 @@ export function getTeamStats(teamName: string): TeamStats {
   if (MOCK_STATS[teamName]) {
     return MOCK_STATS[teamName];
   }
+  
+  let hash = 0;
+  for (let i = 0; i < teamName.length; i++) {
+    hash = teamName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  const seededRandom = (min: number, max: number) => {
+    const x = Math.sin(hash++) * 10000;
+    return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
+  };
+
+  const forms = ["WWWDW", "WDLDW", "LLWDL", "LWWWW", "DDLWD", "WLLWW", "DWDDL", "WWLWW", "DDWWW", "LLLLD"];
   return {
-    form: "WDWDW",
-    goalsScored: 30,
-    goalsConceded: 28,
-    wins: 10,
-    draws: 5,
-    losses: 8,
+    form: forms[Math.abs(hash) % forms.length],
+    goalsScored: seededRandom(20, 65),
+    goalsConceded: seededRandom(15, 50),
+    wins: seededRandom(5, 20),
+    draws: seededRandom(3, 10),
+    losses: seededRandom(5, 15),
   };
 }
