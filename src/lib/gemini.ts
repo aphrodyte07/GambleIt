@@ -26,12 +26,16 @@ export async function getPrediction(fixture: Fixture, homeStats: TeamStats, away
     else if (maxPct === awayWinPct) outcome = "Away Win";
 
     const confidence = clamp(maxPct, 52, 85);
-    const combinedGoals = homeStats.goalsScored + awayStats.goalsScored;
-    const bettingTip = combinedGoals > 70 ? "Over 2.5 Goals" : "Under 2.5 Goals";
-    
     const homeGoals = Math.round(homeStats.goalsScored / (homeStats.wins + homeStats.draws + homeStats.losses || 1));
     const awayGoals = Math.round(awayStats.goalsScored / (awayStats.wins + awayStats.draws + awayStats.losses || 1));
     const scoreline = `${homeGoals}-${awayGoals}`;
+    
+    const totalAvg = homeGoals + awayGoals;
+    let bettingTip = "Both Teams to Score";
+    if (totalAvg > 3) bettingTip = "Over 2.5 Goals";
+    else if (totalAvg < 2) bettingTip = "Under 2.5 Goals";
+    else if (homeStats.goalsConceded <= 20) bettingTip = "Clean Sheet Home";
+    else if (homeWinPct > 45 && drawPct < 30) bettingTip = "Draw No Bet";
     
     return {
       fixtureId: fixture.id,
@@ -82,7 +86,9 @@ Return this exact JSON structure with no other text:
   "drawPct": integer,
   "awayWinPct": integer
 }
-Ensure homeWinPct + drawPct + awayWinPct = exactly 100.`;
+CRITICAL INSTRUCTIONS:
+- Ensure homeWinPct + drawPct + awayWinPct = exactly 100.
+- Analyze defensive and offensive records carefully. If defenses are strong or scoring is low, choose "Under 2.5 Goals", "Clean Sheet Home", or "Clean Sheet Away". Do NOT default to "Over 2.5 Goals" unless both teams score heavily.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',
@@ -95,7 +101,7 @@ Ensure homeWinPct + drawPct + awayWinPct = exactly 100.`;
             text: prompt
           }]
         }],
-        generationConfig: { temperature: 0.4, maxOutputTokens: 300 }
+        generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
       })
     });
 
