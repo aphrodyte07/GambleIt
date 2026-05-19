@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { Sparkles, AlertCircle } from "lucide-react";
-import { MatchData } from "../types";
+import { MatchData, Parlay } from "../types";
 import Navbar from "../components/Navbar";
 import LoadingSpinner from "../components/LoadingSpinner";
 import LeagueFilter from "../components/LeagueFilter";
 import MatchCard from "../components/MatchCard";
 import MatchDetailsModal from "../components/MatchDetailsModal";
+import RecommendedParlays from "../components/RecommendedParlays";
 
 export default function Home() {
   const [predictions, setPredictions] = useState<MatchData[]>([]);
+  const [parlays, setParlays] = useState<Parlay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedLeague, setSelectedLeague] = useState("All Leagues");
@@ -25,6 +27,7 @@ export default function Home() {
         }
         const data = await res.json();
         setPredictions(data.predictions || []);
+        setParlays(data.parlays || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred");
       } finally {
@@ -81,6 +84,10 @@ export default function Home() {
           </div>
         ) : (
           <>
+            {selectedLeague === "All Leagues" && (
+              <RecommendedParlays parlays={parlays} />
+            )}
+
             <LeagueFilter 
               leagues={leagues} 
               selected={selectedLeague} 

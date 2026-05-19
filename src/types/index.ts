@@ -51,6 +51,21 @@ export interface Prediction {
   additionalBets: AdditionalBet[];
 }
 
+export interface ParlayLeg {
+  fixtureId: number;
+  match: string;
+  tip: string;
+  probability: number;
+  odds: string;
+}
+
+export interface Parlay {
+  type: string; // e.g. "3-Leg Safe Parlay"
+  legs: ParlayLeg[];
+  totalOdds: string;
+  totalPayout: string; // e.g. "3.2x"
+}
+
 export interface MatchData {
   fixture: Fixture;
   prediction: Prediction;
