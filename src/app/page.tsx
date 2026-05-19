@@ -7,12 +7,14 @@ import Navbar from "../components/Navbar";
 import LoadingSpinner from "../components/LoadingSpinner";
 import LeagueFilter from "../components/LeagueFilter";
 import MatchCard from "../components/MatchCard";
+import MatchDetailsModal from "../components/MatchDetailsModal";
 
 export default function Home() {
   const [predictions, setPredictions] = useState<MatchData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedLeague, setSelectedLeague] = useState("All Leagues");
+  const [selectedMatch, setSelectedMatch] = useState<MatchData | null>(null);
 
   useEffect(() => {
     const fetchPredictions = async () => {
@@ -95,7 +97,8 @@ export default function Home() {
                   <MatchCard 
                     key={match.fixture.id} 
                     fixture={match.fixture} 
-                    prediction={match.prediction} 
+                    prediction={match.prediction}
+                    onClick={() => setSelectedMatch(match)}
                   />
                 ))}
               </div>
@@ -109,6 +112,13 @@ export default function Home() {
           GambleIt © 2025 · AI predictions for entertainment purposes only · Not financial advice · Data from football-data.org & Google Gemini
         </p>
       </footer>
+
+      {selectedMatch && (
+        <MatchDetailsModal 
+          match={selectedMatch} 
+          onClose={() => setSelectedMatch(null)} 
+        />
+      )}
     </div>
   );
 }

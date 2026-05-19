@@ -4,7 +4,7 @@ import PredictionBadge from "./PredictionBadge";
 import BettingTipBadge from "./BettingTipBadge";
 import StatsBar from "./StatsBar";
 
-export default function MatchCard({ fixture, prediction }: { fixture: Fixture; prediction: Prediction }) {
+export default function MatchCard({ fixture, prediction, onClick }: { fixture: Fixture; prediction: Prediction; onClick?: () => void }) {
   const kickoffTime = new Date(fixture.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -20,7 +20,10 @@ export default function MatchCard({ fixture, prediction }: { fixture: Fixture; p
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-4 hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5 hover:scale-[1.01] transition-all duration-300 cursor-pointer flex flex-col md:flex-row gap-4 md:items-center">
+    <div 
+      className="bg-slate-900 border border-slate-700/50 rounded-2xl p-4 hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5 hover:scale-[1.01] transition-all duration-300 cursor-pointer flex flex-col md:flex-row gap-4 md:items-center"
+      onClick={onClick}
+    >
       
       {/* Left Column: Match Details & Teams */}
       <div className="flex-1">

@@ -48,7 +48,13 @@ export async function getPrediction(fixture: Fixture, homeStats: TeamStats, away
       insight: `${fixture.homeTeam.name} take on ${fixture.awayTeam.name} in a crucial ${fixture.league.name} fixture where recent form and home advantage are key factors.`,
       homeWinPct: finalHomePct,
       drawPct,
-      awayWinPct
+      awayWinPct,
+      detailedAnalysis: `This is a highly anticipated clash between ${fixture.homeTeam.name} and ${fixture.awayTeam.name}. Looking at the recent form, ${fixture.homeTeam.name} comes into this match with a form of ${homeStats.form}, having scored ${homeStats.goalsScored} goals this season. On the other hand, ${fixture.awayTeam.name} has a form of ${awayStats.form} and has conceded ${awayStats.goalsConceded} goals.\n\nTactically, this game will likely be decided in the midfield. ${fixture.homeTeam.name}'s ability to control the tempo at home could be the deciding factor against a potentially stubborn ${fixture.awayTeam.name} defense. Given the stats, we expect a closely contested match with few clear-cut opportunities.`,
+      additionalBets: [
+        { tip: "Over 1.5 Goals", probability: 75 },
+        { tip: "Home Team to Score First", probability: 60 },
+        { tip: "Most Goals in 2nd Half", probability: 55 }
+      ]
     };
   };
 
@@ -84,7 +90,11 @@ Return this exact JSON structure with no other text:
   "insight": one compelling sentence explaining the key reason for this prediction,
   "homeWinPct": integer,
   "drawPct": integer,
-  "awayWinPct": integer
+  "awayWinPct": integer,
+  "detailedAnalysis": "A detailed 2-3 paragraph analysis of the match explaining the tactical matchup, recent form, and why the predicted outcome and betting tips are likely.",
+  "additionalBets": [
+    { "tip": "Another bet tip (e.g. Over 1.5 Goals, Home Team to Score First)", "probability": integer between 50 and 95 }
+  ]
 }
 CRITICAL INSTRUCTIONS:
 - Ensure homeWinPct + drawPct + awayWinPct = exactly 100.
@@ -101,7 +111,7 @@ CRITICAL INSTRUCTIONS:
             text: prompt
           }]
         }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
+        generationConfig: { temperature: 0.7, maxOutputTokens: 800 }
       })
     });
 

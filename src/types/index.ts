@@ -29,6 +29,11 @@ export interface TeamStats {
   losses: number;
 }
 
+export interface AdditionalBet {
+  tip: string;
+  probability: number;
+}
+
 export interface Prediction {
   fixtureId: number;
   homeTeam: string;
@@ -41,6 +46,8 @@ export interface Prediction {
   homeWinPct: number;
   drawPct: number;
   awayWinPct: number;
+  detailedAnalysis: string;
+  additionalBets: AdditionalBet[];
 }
 
 export interface MatchData {
