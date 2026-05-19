@@ -139,7 +139,7 @@ export default function ParlayPanel({ parlay }: { parlay: ParlayRecommendation }
       <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl px-4 py-2.5 mb-6 flex items-start gap-2">
         <ShieldCheck className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
         <p className="text-amber-300/80 text-xs leading-relaxed">
-          Legs are selected by probability, not by gut feel. Each parlay is capped to a realistic payout range to keep returns sustainable. Never bet more than you can afford to lose.
+          Legs are selected by probability, not by gut feel. Each parlay is capped to a realistic payout range to keep returns sustainable. Never bet more than you can afford to lose. <strong>Please note that the odds shown might not be exactly accurate.</strong>
         </p>
       </div>
 
