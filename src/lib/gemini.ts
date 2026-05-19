@@ -51,9 +51,9 @@ export async function getPrediction(fixture: Fixture, homeStats: TeamStats, away
       awayWinPct,
       detailedAnalysis: `This is a highly anticipated clash between ${fixture.homeTeam.name} and ${fixture.awayTeam.name}. Looking at the recent form, ${fixture.homeTeam.name} comes into this match with a form of ${homeStats.form}, having scored ${homeStats.goalsScored} goals this season. On the other hand, ${fixture.awayTeam.name} has a form of ${awayStats.form} and has conceded ${awayStats.goalsConceded} goals.\n\nTactically, this game will likely be decided in the midfield. ${fixture.homeTeam.name}'s ability to control the tempo at home could be the deciding factor against a potentially stubborn ${fixture.awayTeam.name} defense. Given the stats, we expect a closely contested match with few clear-cut opportunities.`,
       additionalBets: [
-        { tip: "Over 1.5 Goals", probability: 75 },
-        { tip: "Home Team to Score First", probability: 60 },
-        { tip: "Most Goals in 2nd Half", probability: 55 }
+        { tip: totalAvg > 2.5 ? "Over 1.5 Goals" : "Under 3.5 Goals", probability: clamp(65 + Math.floor(totalAvg * 3), 60, 85) },
+        { tip: homeStrength > awayStrength ? "Home Team to Score First" : "Away Team to Score First", probability: clamp(55 + Math.abs(homeStrength - awayStrength) * 2, 50, 80) },
+        { tip: "Most Goals in 2nd Half", probability: clamp(50 + Math.floor((homeStats.goalsScored + awayStats.goalsScored) / 4), 45, 75) }
       ]
     };
   };
@@ -93,12 +93,15 @@ Return this exact JSON structure with no other text:
   "awayWinPct": integer,
   "detailedAnalysis": "A detailed 2-3 paragraph analysis of the match explaining the tactical matchup, recent form, and why the predicted outcome and betting tips are likely.",
   "additionalBets": [
-    { "tip": "Another bet tip (e.g. Over 1.5 Goals, Home Team to Score First)", "probability": integer between 50 and 95 }
+    { "tip": "A specific realistic betting tip", "probability": integer between 50 and 95 },
+    { "tip": "Another distinct betting tip", "probability": integer between 50 and 95 },
+    { "tip": "A third distinct betting tip", "probability": integer between 50 and 95 }
   ]
 }
 CRITICAL INSTRUCTIONS:
 - Ensure homeWinPct + drawPct + awayWinPct = exactly 100.
-- Analyze defensive and offensive records carefully. If defenses are strong or scoring is low, choose "Under 2.5 Goals", "Clean Sheet Home", or "Clean Sheet Away". Do NOT default to "Over 2.5 Goals" unless both teams score heavily.`;
+- Analyze defensive and offensive records carefully. If defenses are strong or scoring is low, choose "Under 2.5 Goals", "Clean Sheet Home", or "Clean Sheet Away". Do NOT default to "Over 2.5 Goals" unless both teams score heavily.
+- Provide exactly 3 additionalBets. Ensure they are varied, highly specific to the matchup (e.g., "Home Team to Score First", "Under 1.5 Goals 1st Half", "Away Team Over 0.5 Goals"), and have distinct, realistic probabilities. Do not repeat the same tips or probabilities across different matches.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',
