@@ -32,6 +32,7 @@ export interface TeamStats {
 export interface AdditionalBet {
   tip: string;
   probability: number;
+  odds: string;
 }
 
 export interface Prediction {

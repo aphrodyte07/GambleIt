@@ -53,9 +53,12 @@ export async function getPrediction(fixture: Fixture, homeStats: TeamStats, away
       { tip: "BTTS: No", probability: clamp(60 - (totalGoals - 2.0) * 15, 10, 90) },
       { tip: "Handicap: Home +1.5", probability: clamp(homeWinPct + drawPct + 15, 20, 95) },
       { tip: "Handicap: Away +1.5", probability: clamp(awayWinPct + drawPct + 15, 20, 95) }
-    ];
+    ].map(bet => ({
+      ...bet,
+      odds: (95 / bet.probability).toFixed(2) // Simulate realistic odds with 5% vig
+    }));
 
-    // Select the best logically consistent bettingTip
+    // Select the best logically consistent bettingTip (Smart Bet Choice)
     let validBets = [...additionalBets];
     if (totalGoals < 3) validBets = validBets.filter(b => b.tip !== "Over 2.5 Goals");
     if (totalGoals > 2) validBets = validBets.filter(b => b.tip !== "Under 2.5 Goals");
@@ -66,7 +69,10 @@ export async function getPrediction(fixture: Fixture, homeStats: TeamStats, away
     if (outcome === "Draw") validBets = validBets.filter(b => !b.tip.includes("12"));
     
     validBets.sort((a, b) => b.probability - a.probability);
-    const bettingTip = validBets[0]?.tip || "Under 2.5 Goals";
+    
+    // Smart Bet: Try to find a good value bet (probability between 55% and 80%) to avoid highly juiced favorites
+    const valueBets = validBets.filter(b => b.probability >= 55 && b.probability <= 80);
+    const bettingTip = valueBets.length > 0 ? valueBets[0].tip : (validBets[0]?.tip || "Under 2.5 Goals");
     
     return {
       fixtureId: fixture.id,
@@ -120,22 +126,22 @@ Return this exact JSON structure with no other text:
   "awayWinPct": integer,
   "detailedAnalysis": "A detailed 2-3 paragraph analysis of the match explaining the tactical matchup, recent form, and why the predicted outcome and betting tips are likely.",
   "additionalBets": [
-    { "tip": "Double Chance: 1X (Home or Draw)", "probability": integer },
-    { "tip": "Double Chance: X2 (Away or Draw)", "probability": integer },
-    { "tip": "Double Chance: 12 (Home or Away)", "probability": integer },
-    { "tip": "Over 2.5 Goals", "probability": integer },
-    { "tip": "Under 2.5 Goals", "probability": integer },
-    { "tip": "BTTS: Yes", "probability": integer },
-    { "tip": "BTTS: No", "probability": integer },
-    { "tip": "Handicap: Home +1.5", "probability": integer },
-    { "tip": "Handicap: Away +1.5", "probability": integer }
+    { "tip": "Double Chance: 1X (Home or Draw)", "probability": integer, "odds": "string formatted as decimal e.g. '1.55'" },
+    { "tip": "Double Chance: X2 (Away or Draw)", "probability": integer, "odds": "string formatted as decimal e.g. '1.55'" },
+    { "tip": "Double Chance: 12 (Home or Away)", "probability": integer, "odds": "string formatted as decimal e.g. '1.55'" },
+    { "tip": "Over 2.5 Goals", "probability": integer, "odds": "string formatted as decimal e.g. '1.55'" },
+    { "tip": "Under 2.5 Goals", "probability": integer, "odds": "string formatted as decimal e.g. '1.55'" },
+    { "tip": "BTTS: Yes", "probability": integer, "odds": "string formatted as decimal e.g. '1.55'" },
+    { "tip": "BTTS: No", "probability": integer, "odds": "string formatted as decimal e.g. '1.55'" },
+    { "tip": "Handicap: Home +1.5", "probability": integer, "odds": "string formatted as decimal e.g. '1.55'" },
+    { "tip": "Handicap: Away +1.5", "probability": integer, "odds": "string formatted as decimal e.g. '1.55'" }
   ]
 }
 CRITICAL INSTRUCTIONS:
 - Ensure homeWinPct + drawPct + awayWinPct = exactly 100.
 - CRITICAL: The 'outcome', 'scoreline', and 'bettingTip' MUST be perfectly logically consistent. If outcome is 'Home Win', the home team MUST score more goals in the scoreline.
-- For additionalBets, calculate realistic probabilities based on your analysis for EXACTLY the 9 bet types listed above.
-- Your main 'bettingTip' MUST be the exact name of whichever of the 9 bets you calculate has the highest probability of success, while ensuring it logically aligns with your predicted scoreline. Do not default to the same bet every time. Explore all options and pick the best value.`;
+- For additionalBets, calculate realistic probabilities and corresponding realistic decimal odds (approx 95 / probability) for EXACTLY the 9 bet types listed above.
+- Your main 'bettingTip' MUST be a 'Smart Bet Choice'. Do not just blindly pick the highest probability bet (which is often a heavily juiced Handicap with poor odds). Instead, select a bet that balances good probability (55-80%) with valuable odds, while ensuring it logically aligns with your predicted scoreline.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',

@@ -74,13 +74,18 @@ export default function MatchDetailsModal({ match, onClose }: MatchDetailsModalP
             
             <div className="space-y-4">
               {prediction.additionalBets && prediction.additionalBets.length > 0 ? (
-                prediction.additionalBets.map((bet, idx) => (
+                [...prediction.additionalBets]
+                  .sort((a, b) => b.probability - a.probability)
+                  .map((bet, idx) => (
                   <div key={idx} className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-white font-medium">{bet.tip}</span>
-                      <span className={`font-bold ${getProbabilityTextColor(bet.probability)}`}>
-                        {bet.probability}%
-                      </span>
+                      <div className="flex items-center gap-3">
+                        {bet.odds && <span className="text-slate-400 text-sm font-mono tracking-tight">@ {bet.odds}</span>}
+                        <span className={`font-bold ${getProbabilityTextColor(bet.probability)}`}>
+                          {bet.probability}%
+                        </span>
+                      </div>
                     </div>
                     <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden">
                       <div 
