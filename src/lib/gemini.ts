@@ -43,13 +43,30 @@ export async function getPrediction(fixture: Fixture, homeStats: TeamStats, away
     const scoreline = `${homeGoals}-${awayGoals}`;
     const totalGoals = homeGoals + awayGoals;
     
-    // Ensure bettingTip is perfectly logically consistent with the scoreline
-    let bettingTip = "Both Teams to Score";
-    if (awayGoals === 0 && homeGoals > 0) bettingTip = "Clean Sheet Home";
-    else if (homeGoals === 0 && awayGoals > 0) bettingTip = "Clean Sheet Away";
-    else if (totalGoals > 2) bettingTip = "Over 2.5 Goals";
-    else if (totalGoals < 3) bettingTip = "Under 2.5 Goals";
-    else if (outcome === "Home Win" || outcome === "Away Win") bettingTip = "Draw No Bet";
+    const additionalBets = [
+      { tip: "Double Chance: 1X (Home or Draw)", probability: clamp(homeWinPct + drawPct, 10, 95) },
+      { tip: "Double Chance: X2 (Away or Draw)", probability: clamp(awayWinPct + drawPct, 10, 95) },
+      { tip: "Double Chance: 12 (Home or Away)", probability: clamp(homeWinPct + awayWinPct, 10, 95) },
+      { tip: "Over 2.5 Goals", probability: clamp(30 + (totalGoals - 2.5) * 20, 10, 90) },
+      { tip: "Under 2.5 Goals", probability: clamp(70 - (totalGoals - 2.5) * 20, 10, 90) },
+      { tip: "BTTS: Yes", probability: clamp(40 + (totalGoals - 2.0) * 15, 10, 90) },
+      { tip: "BTTS: No", probability: clamp(60 - (totalGoals - 2.0) * 15, 10, 90) },
+      { tip: "Handicap: Home +1.5", probability: clamp(homeWinPct + drawPct + 15, 20, 95) },
+      { tip: "Handicap: Away +1.5", probability: clamp(awayWinPct + drawPct + 15, 20, 95) }
+    ];
+
+    // Select the best logically consistent bettingTip
+    let validBets = [...additionalBets];
+    if (totalGoals < 3) validBets = validBets.filter(b => b.tip !== "Over 2.5 Goals");
+    if (totalGoals > 2) validBets = validBets.filter(b => b.tip !== "Under 2.5 Goals");
+    if (homeGoals === 0 || awayGoals === 0) validBets = validBets.filter(b => b.tip !== "BTTS: Yes");
+    if (homeGoals > 0 && awayGoals > 0) validBets = validBets.filter(b => b.tip !== "BTTS: No");
+    if (outcome === "Home Win") validBets = validBets.filter(b => !b.tip.includes("X2"));
+    if (outcome === "Away Win") validBets = validBets.filter(b => !b.tip.includes("1X"));
+    if (outcome === "Draw") validBets = validBets.filter(b => !b.tip.includes("12"));
+    
+    validBets.sort((a, b) => b.probability - a.probability);
+    const bettingTip = validBets[0]?.tip || "Under 2.5 Goals";
     
     return {
       fixtureId: fixture.id,
@@ -64,17 +81,7 @@ export async function getPrediction(fixture: Fixture, homeStats: TeamStats, away
       drawPct,
       awayWinPct,
       detailedAnalysis: `This is a highly anticipated clash between ${fixture.homeTeam.name} and ${fixture.awayTeam.name}. Looking at the recent form, ${fixture.homeTeam.name} comes into this match with a form of ${homeStats.form}, having scored ${homeStats.goalsScored} goals this season. On the other hand, ${fixture.awayTeam.name} has a form of ${awayStats.form} and has conceded ${awayStats.goalsConceded} goals.\n\nTactically, this game will likely be decided in the midfield. ${fixture.homeTeam.name}'s ability to control the tempo at home could be the deciding factor against a potentially stubborn ${fixture.awayTeam.name} defense. Given the stats, we expect a closely contested match with few clear-cut opportunities.`,
-      additionalBets: [
-        { tip: "Double Chance: 1X (Home or Draw)", probability: clamp(homeWinPct + drawPct, 10, 95) },
-        { tip: "Double Chance: X2 (Away or Draw)", probability: clamp(awayWinPct + drawPct, 10, 95) },
-        { tip: "Double Chance: 12 (Home or Away)", probability: clamp(homeWinPct + awayWinPct, 10, 95) },
-        { tip: "Over 2.5 Goals", probability: clamp(30 + (totalGoals - 2.5) * 20, 10, 90) },
-        { tip: "Under 2.5 Goals", probability: clamp(70 - (totalGoals - 2.5) * 20, 10, 90) },
-        { tip: "BTTS: Yes", probability: clamp(40 + (totalGoals - 2.0) * 15, 10, 90) },
-        { tip: "BTTS: No", probability: clamp(60 - (totalGoals - 2.0) * 15, 10, 90) },
-        { tip: "Handicap: Home +1.5", probability: clamp(homeWinPct + drawPct + 15, 20, 95) },
-        { tip: "Handicap: Away +1.5", probability: clamp(awayWinPct + drawPct + 15, 20, 95) }
-      ]
+      additionalBets
     };
   };
 
@@ -106,7 +113,7 @@ Return this exact JSON structure with no other text:
   "outcome": "Home Win" or "Draw" or "Away Win",
   "confidence": a number between 52 and 88,
   "scoreline": predicted score as "X-Y" e.g. "2-1",
-  "bettingTip": one of exactly these strings: "Over 2.5 Goals" or "Under 2.5 Goals" or "Both Teams to Score" or "Draw No Bet" or "Clean Sheet Home" or "Clean Sheet Away",
+  "bettingTip": "Select the SINGLE BEST bet from your 9 additionalBets. It MUST logically match your scoreline.",
   "insight": one compelling sentence explaining the key reason for this prediction,
   "homeWinPct": integer,
   "drawPct": integer,
@@ -126,9 +133,9 @@ Return this exact JSON structure with no other text:
 }
 CRITICAL INSTRUCTIONS:
 - Ensure homeWinPct + drawPct + awayWinPct = exactly 100.
-- CRITICAL: The 'outcome', 'scoreline', and 'bettingTip' MUST be perfectly logically consistent. If outcome is 'Home Win', the home team MUST score more goals in the scoreline. If tip is 'Clean Sheet Home', the away team MUST have 0 goals in the scoreline.
-- Analyze defensive and offensive records carefully. If defenses are strong or scoring is low, choose "Under 2.5 Goals", "Clean Sheet Home", or "Clean Sheet Away". Do NOT default to "Over 2.5 Goals" unless both teams score heavily.
-- For additionalBets, calculate realistic probabilities based on your analysis for EXACTLY the 9 bet types listed above. Do not add, remove, or change the names of the tips.`;
+- CRITICAL: The 'outcome', 'scoreline', and 'bettingTip' MUST be perfectly logically consistent. If outcome is 'Home Win', the home team MUST score more goals in the scoreline.
+- For additionalBets, calculate realistic probabilities based on your analysis for EXACTLY the 9 bet types listed above.
+- Your main 'bettingTip' MUST be the exact name of whichever of the 9 bets you calculate has the highest probability of success, while ensuring it logically aligns with your predicted scoreline. Do not default to the same bet every time. Explore all options and pick the best value.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',
