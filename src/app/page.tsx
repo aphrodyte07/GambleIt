@@ -9,6 +9,7 @@ import LeagueFilter from "../components/LeagueFilter";
 import MatchCard from "../components/MatchCard";
 import MatchDetailsModal from "../components/MatchDetailsModal";
 import ParlayPanel from "../components/ParlayPanel";
+import BetHistory from "../components/BetHistory";
 
 export default function Home() {
   const [predictions, setPredictions] = useState<MatchData[]>([]);
@@ -91,6 +92,8 @@ export default function Home() {
           <>
             
             {parlay && <ParlayPanel parlay={parlay} />}
+
+            <BetHistory />
 
             <LeagueFilter 
               leagues={leagues} 

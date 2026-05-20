@@ -29,6 +29,13 @@ export interface TeamStats {
   losses: number;
 }
 
+export interface H2HRecord {
+  homeWins: number;
+  awayWins: number;
+  draws: number;
+  recentResults: string[];
+}
+
 export interface AdditionalBet {
   tip: string;
   probability: number;
@@ -77,4 +84,31 @@ export interface ParlaySlip {
 export interface ParlayRecommendation {
   slips: ParlaySlip[];
   generatedAt: string;
+}
+
+export interface Injury {
+  player: string;
+  type: string;
+  reason: string;
+}
+
+export interface Standing {
+  position: number;
+  team: { id: number; name: string };
+  points: number;
+  won: number;
+  draw: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  form: string;
+}
+
+export interface APIFootballPrediction {
+  winner: { id: number; name: string; comment: string };
+  winOrDraw: boolean;
+  underOver: string;
+  goals: { home: string; away: string };
+  advice: string;
+  percent: { home: string; draw: string; away: string };
 }

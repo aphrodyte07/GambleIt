@@ -1,6 +1,16 @@
-import { Fixture, Prediction, TeamStats } from "../types";
+import { Fixture, Prediction, TeamStats, H2HRecord, Injury, Standing, APIFootballPrediction } from "../types";
 
-export async function getPrediction(fixture: Fixture, homeStats: TeamStats, awayStats: TeamStats): Promise<Prediction> {
+export async function getPrediction(
+  fixture: Fixture, 
+  homeStats: TeamStats, 
+  awayStats: TeamStats, 
+  h2h?: H2HRecord,
+  homeInjuries?: Injury[],
+  awayInjuries?: Injury[],
+  apiPrediction?: APIFootballPrediction,
+  homeStanding?: Standing,
+  awayStanding?: Standing
+): Promise<Prediction> {
   const fallback = () => {
     const homeStrength = homeStats.wins * 3 + homeStats.draws + homeStats.goalsScored - homeStats.goalsConceded;
     const awayStrength = awayStats.wins * 3 + awayStats.draws + awayStats.goalsScored - awayStats.goalsConceded;
@@ -114,6 +124,27 @@ ${fixture.awayTeam.name} Statistics:
 - Goals conceded this season: ${awayStats.goalsConceded}
 - Season record: ${awayStats.wins} wins, ${awayStats.draws} draws, ${awayStats.losses} losses
 
+${h2h ? `Head-to-Head (last 10 meetings):
+- Home wins: ${h2h.homeWins}
+- Away wins: ${h2h.awayWins}
+- Draws: ${h2h.draws}
+- Recent results: ${h2h.recentResults.join(', ')}` : 'Head-to-Head: No previous data available'}
+
+${homeStanding && awayStanding ? `=== LEAGUE STANDINGS ===
+${homeStanding.team.name}: ${homeStanding.position} in league, ${homeStanding.points} pts, ${homeStanding.won}W ${homeStanding.draw}D ${homeStanding.lost}L
+${awayStanding.team.name}: ${awayStanding.position} in league, ${awayStanding.points} pts, ${awayStanding.won}W ${awayStanding.draw}D ${awayStanding.lost}L` : ''}
+
+=== INJURIES & SUSPENSIONS ===
+${fixture.homeTeam.name} missing: ${homeInjuries && homeInjuries.length > 0 ? homeInjuries.map(i => `${i.player} (${i.reason})`).join(', ') : 'None reported'}
+${fixture.awayTeam.name} missing: ${awayInjuries && awayInjuries.length > 0 ? awayInjuries.map(i => `${i.player} (${i.reason})`).join(', ') : 'None reported'}
+
+${apiPrediction ? `=== STATISTICAL MODEL PREDICTION (use as one signal, not gospel) ===
+Predicted winner: ${apiPrediction.winner.name} (${apiPrediction.winner.comment})
+Win or draw: ${apiPrediction.winOrDraw ? 'yes' : 'no'}
+Advice: ${apiPrediction.advice}
+Predicted goals — Home: ${apiPrediction.goals.home} Away: ${apiPrediction.goals.away}
+Win percentages — Home: ${apiPrediction.percent.home} Draw: ${apiPrediction.percent.draw} Away: ${apiPrediction.percent.away}` : ''}
+
 Return this exact JSON structure with no other text:
 {
   "outcome": "Home Win" or "Draw" or "Away Win",
@@ -143,7 +174,7 @@ CRITICAL INSTRUCTIONS:
 - For additionalBets, calculate realistic probabilities and corresponding realistic decimal odds (approx 95 / probability) for EXACTLY the 9 bet types listed above.
 - Your main 'bettingTip' MUST be a 'Smart Bet Choice'. Do not just blindly pick the highest probability bet (which is often a heavily juiced Handicap with poor odds). Instead, select a bet that balances good probability (55-80%) with valuable odds, while ensuring it logically aligns with your predicted scoreline.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -154,7 +185,7 @@ CRITICAL INSTRUCTIONS:
             text: prompt
           }]
         }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 800 }
+        generationConfig: { temperature: 0.2, maxOutputTokens: 800 }
       })
     });
 
