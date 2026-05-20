@@ -90,11 +90,6 @@ export default function Home() {
           </div>
         ) : (
           <>
-            
-            {parlay && <ParlayPanel parlay={parlay} />}
-
-            <BetHistory />
-
             <LeagueFilter 
               leagues={leagues} 
               selected={selectedLeague} 
@@ -117,6 +112,10 @@ export default function Home() {
                 ))}
               </div>
             )}
+
+            {parlay && <ParlayPanel parlay={parlay} />}
+
+            <BetHistory predictions={predictions} />
           </>
         )}
       </main>
